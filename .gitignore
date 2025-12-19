@@ -1,0 +1,36 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+.venv/
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Data & Artifacts
+# Ignore data folder as it likely contains datasets
+data/
+# Ignore model weights but keep source code
+*.h5
+*.pth
+*.pt
+*.onnx
+*.pkl
+# Ignore potential output directories
+outputs/
+wandb/
+runs/
