@@ -21,7 +21,7 @@ print(f"Using device: {device}")
 # Hyperparameters
 batch_size = 32
 learning_rate = 1e-3
-epochs = 30
+epochs = 100
 step_size = 100
 
 # Model parameters
