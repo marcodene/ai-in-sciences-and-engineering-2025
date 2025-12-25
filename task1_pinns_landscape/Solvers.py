@@ -70,7 +70,7 @@ class BaseSolver(ABC):
                     self.history['loss_components'][key].append(value.item())
 
             if (epoch + 1)% 10 == 0:
-                loss_str = f"Epoch {epoch:5d} | Loss: {loss.item():.6f}"
+                loss_str = f"Epoch {epoch+1:5d} | Loss: {loss.item():.6f}"
                 for key, value in loss_dict.items():
                     if key != 'total':
                         loss_str += f" | {key}: {value.item():.6f}"
@@ -120,12 +120,15 @@ class BaseSolver(ABC):
         )
 
         with torch.no_grad():
-            u_pred = self.model(xy_test)
+            u_pred = self.model(xy_test).numpy()
 
-        u_pred = u_pred.numpy().reshape(X_test.shape)
+        if hasattr(self, 'u_std') and hasattr(self, 'u_mean'):
+            u_pred = u_pred * self.u_std + self.u_mean
+
+        u_pred = u_pred.reshape(X_test.shape)
 
         return u_pred
-
+    
     def compute_l2_error(self):
         u_pred = self.predict()
         error = np.sqrt(np.mean((u_pred - self.u_grid)**2)) / np.sqrt(np.mean(self.u_grid**2))
@@ -205,24 +208,53 @@ class BaseSolver(ABC):
 
 
 class PoissonPINN(BaseSolver):
-    def __init__(self, f_grid, u_grid, X_grid, Y_grid, hidden_dim=128, n_layers=4, lambda_bc=10.0):
+    def __init__(self, f_grid, u_grid, X_grid, Y_grid, 
+                 K, coefficients, 
+                 n_collocation=10000,
+                 hidden_dim=128, n_layers=4, lambda_bc=10.0):
+        
+        self.K = K
+        self.coefficients = torch.tensor(coefficients, dtype=torch.float32)
+        self.n_collocation = n_collocation
+
         super().__init__(f_grid, u_grid, X_grid, Y_grid, hidden_dim, n_layers)
         self.lambda_bc = lambda_bc
 
+    def compute_source_term(self, xy):
+        x = xy[:, 0]
+        y = xy[:, 1]
+
+        f = torch.zeros(len(x), 1)
+        r = 0.5
+
+        for i in range(1, self.K + 1):
+            for j in range(1, self.K + 1):
+                a_ij = self.coefficients[i-1, j-1]
+                freq_weight = (i**2 + j**2)**r
+                spatial = torch.sin(np.pi * i * x) * torch.sin(np.pi * j * y)
+                f += a_ij * freq_weight * spatial.unsqueeze(1)
+
+        f = (np.pi / self.K**2) * f
+    
+        return f
+
     def prepare_training_data(self):
-        X_interior = self.X_grid[1:-1, 1:-1]
-        Y_interior = self.Y_grid[1:-1, 1:-1]
-        f_interior = self.f_grid[1:-1, 1:-1]
 
-        xy_collocation = np.stack([
-            X_interior.flatten(),
-            Y_interior.flatten()
-        ], axis=1)
+        np.random.seed(42)
 
-        f_collocation = f_interior.flatten().reshape(-1, 1)
+        xy_collocation = np.random.uniform(
+            low = 0.0,
+            high = 1.0,
+            size=(self.n_collocation, 2)
+        )
 
-        self.xy_collocation = torch.tensor(xy_collocation, dtype=torch.float32, requires_grad=True)
-        self.f_collocation = torch.tensor(f_collocation, dtype=torch.float32)
+        self.xy_collocation = torch.tensor(
+            xy_collocation, 
+            dtype=torch.float32, 
+            requires_grad=False 
+        )
+
+        self.f_collocation = self.compute_source_term(self.xy_collocation)
             
         # Boundary points
         N = self.X_grid.shape[0]
@@ -232,11 +264,11 @@ class PoissonPINN(BaseSolver):
         right = np.stack([self.X_grid[1:-1, -1], self.Y_grid[1:-1, -1]], axis=1)
 
         xy_boundary = np.vstack([bottom, top, left, right])
-        self.xy_boundary = torch.tensor(xy_boundary, dtype=torch.float32, requires_grad=True)
+        self.xy_boundary = torch.tensor(xy_boundary, dtype=torch.float32, requires_grad=False)
 
 
     def compute_laplacian(self, xy):
-        xy.requires_grad_(True)
+        xy = xy.clone().detach().requires_grad_(True)
         u = self.model(xy)
         
         u_grad = torch.autograd.grad(
@@ -290,9 +322,14 @@ class DataDrivenSolver(BaseSolver):
         ], axis=1)
         
         u_train = self.u_grid.flatten().reshape(-1, 1)
+
+        self.u_mean = np.mean(u_train)
+        self.u_std = np.std(u_train)
+
+        u_train_scaled = (u_train - self.u_mean) / (self.u_std + 1e-8)
         
         self.xy_train = torch.tensor(xy_train, dtype=torch.float32)
-        self.u_train = torch.tensor(u_train, dtype=torch.float32)
+        self.u_train = torch.tensor(u_train_scaled, dtype=torch.float32)
 
     def compute_loss(self):
         u_pred = self.model(self.xy_train)
@@ -306,65 +343,71 @@ class DataDrivenSolver(BaseSolver):
         }
         
     
+if __name__ == '__main__':
+    # Generate data
+    N = 64
+    K = 16
+    f, u, coefficients = generate_sample(N, K)
+    X, Y = create_grid(N)
 
-# Generate data
-N = 64
-K = 16
-f, u = generate_sample(N, K)
-X, Y = create_grid(N)
+    print("="*60)
+    print("PINN Approach")
+    print("="*60)
 
-print("="*60)
-print("PINN Approach")
-print("="*60)
+    
+    # Train PINN
+    pinn = PoissonPINN(
+        f_grid=f, u_grid=u, X_grid=X, Y_grid=Y,
+        K=K,
+        coefficients=coefficients,
+        n_collocation=10000,
+        hidden_dim=256, n_layers=6, 
+        lambda_bc=10.0
+    )
 
-# Train PINN
-pinn = PoissonPINN(
-    f_grid=f, u_grid=u, X_grid=X, Y_grid=Y,
-    hidden_dim=128, n_layers=4, lambda_bc=10.0
-)
+    print(f"Collocation points: {pinn.xy_collocation.shape[0]}")
+    print(f"Boundary points: {pinn.xy_boundary.shape[0]}")
 
-print(f"Collocation points: {pinn.xy_collocation.shape[0]}")
-print(f"Boundary points: {pinn.xy_boundary.shape[0]}")
+    pinn.fit(epochs=2000, lr=1e-3)
+    pinn.fit_lbfgs(max_iter=500)
 
-pinn.fit(epochs=2000, lr=1e-3)
-pinn.fit_lbfgs(max_iter=500)
+    print(f"PINN L2 Error: {pinn.compute_l2_error():.6f}")
+    
 
-print(f"PINN L2 Error: {pinn.compute_l2_error():.6f}")
+    print("\n" + "="*60)
+    print("Data-Driven Approach")
+    print("="*60)
 
-print("\n" + "="*60)
-print("Data-Driven Approach")
-print("="*60)
+    # Train Data-Driven (same network architecture!)
+    dd = DataDrivenSolver(
+        f_grid=f, u_grid=u, X_grid=X, Y_grid=Y,
+        hidden_dim=256, n_layers=6
+    )
 
-# Train Data-Driven (same network architecture!)
-dd = DataDrivenSolver(
-    f_grid=f, u_grid=u, X_grid=X, Y_grid=Y,
-    hidden_dim=128, n_layers=4
-)
+    print(f"Training points: {dd.xy_train.shape[0]}")
 
-print(f"Training points: {dd.xy_train.shape[0]}")
+    dd.fit(epochs=4000, lr=1e-4)
+    dd.fit_lbfgs(max_iter=500)
 
-dd.fit(epochs=2000, lr=1e-3)
-dd.fit_lbfgs(max_iter=500)
+    print(f"Data-Driven L2 Error: {dd.compute_l2_error():.6f}")
 
-print(f"Data-Driven L2 Error: {dd.compute_l2_error():.6f}")
+    print("\n" + "="*60)
+    print("Comparison")
+    print("="*60)
+    print(f"PINN:        {pinn.compute_l2_error():.6f}")
+    print(f"Data-Driven: {dd.compute_l2_error():.6f}")
 
-print("\n" + "="*60)
-print("Comparison")
-print("="*60)
-print(f"PINN:        {pinn.compute_l2_error():.6f}")
-print(f"Data-Driven: {dd.compute_l2_error():.6f}")
+    # Visualize
+    fig1 = pinn.plot_results()
+    fig1.suptitle('PINN Results', fontsize=16)
 
-# Visualize
-fig1 = pinn.plot_results()
-fig1.suptitle('PINN Results', fontsize=16)
+    fig2 = dd.plot_results()
+    fig2.suptitle('Data-Driven Results', fontsize=16)
 
-fig2 = dd.plot_results()
-fig2.suptitle('Data-Driven Results', fontsize=16)
+    fig3 = pinn.plot_loss_history()
+    fig3.suptitle('PINN Loss History', fontsize=16)
 
-fig3 = pinn.plot_loss_history()
-fig3.suptitle('PINN Loss History', fontsize=16)
+    fig4 = dd.plot_loss_history()
+    fig4.suptitle('Data-Driven Loss History', fontsize=16)
 
-fig4 = dd.plot_loss_history()
-fig4.suptitle('Data-Driven Loss History', fontsize=16)
-
-plt.show()
+    plt.show()

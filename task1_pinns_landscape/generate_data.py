@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def create_grid(N):
     """Create spatial grid"""
@@ -37,7 +38,7 @@ def generate_sample(N, K):
     f = np.pi * compute_fields(X, Y, a_ij, K, 0.5)
     u = (1 / np.pi) * compute_fields(X, Y, a_ij, K, -0.5)
 
-    return f, u
+    return f, u, a_ij
 
 def visualize_samples(N=64, K_values=[1, 4, 8, 16], n_samples=3):
     """Generate and visualize samples for different complexity levels"""
@@ -79,13 +80,17 @@ def visualize_samples(N=64, K_values=[1, 4, 8, 16], n_samples=3):
 
 
 
-figures = visualize_samples(N=64, K_values=[1, 4, 8, 16], n_samples=3)
-
-# Show all figures
-plt.show()
-
-# Optionally save them for your report
-for idx, fig in enumerate(figures):
-    K_val = [1, 4, 8, 16][idx]
-    fig.savefig(f'plots/task1/samples_K_{K_val}.png', dpi=300, bbox_inches='tight')
-    print(f"Saved: samples_K_{K_val}.png")
+if __name__ == '__main__':
+    figures = visualize_samples(N=64, K_values=[1, 4, 8, 16], n_samples=3)
+    
+    # Crea directory se non esiste
+    os.makedirs('plots/task1', exist_ok=True)
+    
+    # Salva figure
+    for idx, fig in enumerate(figures):
+        K_val = [1, 4, 8, 16][idx]
+        save_path = f'plots/task1/samples_K_{K_val}.png'
+        fig.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"✓ Saved: {save_path}")
+    
+    #plt.show()

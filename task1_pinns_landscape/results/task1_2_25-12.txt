@@ -1,0 +1,205 @@
+======================================================================
+TASK 1.1: DATA GENERATION AND VISUALIZATION
+======================================================================
+✓ Saved: plots/task1_1/samples_K_1.png
+✓ Saved: plots/task1_1/samples_K_4.png
+✓ Saved: plots/task1_1/samples_K_8.png
+✓ Saved: plots/task1_1/samples_K_16.png
+
+======================================================================
+TASK 1.2: TRAINING PINN AND DATA-DRIVEN SOLVERS
+======================================================================
+
+======================================================================
+COMPLEXITY LEVEL: K = 1
+======================================================================
+
+----------------------------------------------------------------------
+PINN Approach (K=1)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Generating 10000 collocation points using Sobol sequences...
+Collocation points: 10000
+Boundary points: 252
+Training with Adam optimizer...
+Epoch   200 | Loss: 0.024162 | PDE: 0.011349 | BC: 0.001281 | L2 Error: 0.100897
+Epoch   400 | Loss: 0.549741 | PDE: 0.402415 | BC: 0.014733 | L2 Error: 0.436943
+Epoch   600 | Loss: 0.008662 | PDE: 0.001270 | BC: 0.000739 | L2 Error: 0.078870
+Epoch   800 | Loss: 0.008036 | PDE: 0.001087 | BC: 0.000695 | L2 Error: 0.076464
+Epoch  1000 | Loss: 0.079909 | PDE: 0.068274 | BC: 0.001164 | L2 Error: 0.068814
+Epoch  1200 | Loss: 0.002949 | PDE: 0.000574 | BC: 0.000238 | L2 Error: 0.045007
+Epoch  1400 | Loss: 0.004505 | PDE: 0.000608 | BC: 0.000390 | L2 Error: 0.055625
+Epoch  1600 | Loss: 0.001374 | PDE: 0.000378 | BC: 0.000100 | L2 Error: 0.029223
+Epoch  1800 | Loss: 0.005845 | PDE: 0.003240 | BC: 0.000260 | L2 Error: 0.043779
+Epoch  2000 | Loss: 0.000678 | PDE: 0.000280 | BC: 0.000040 | L2 Error: 0.018398
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.000002 | L2 Error: 0.000363
+
+✓ PINN L2 Error (grid): 0.000396
+✓ PINN L2 Error (test set): 0.000363
+✓ Saved: plots/task1_2/PINN_K1_prediction.png
+✓ Saved: plots/task1_2/PINN_K1_loss.png
+
+----------------------------------------------------------------------
+Data-Driven Approach (K=1)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Training points: 4096
+Data normalization: mean=0.155865, std=0.117884
+Training with Adam optimizer...
+Epoch   400 | Loss: 0.051698 | MSE: 0.051698 | L2 Error: 0.127671
+Epoch   800 | Loss: 0.007650 | MSE: 0.007650 | L2 Error: 0.051840
+Epoch  1200 | Loss: 0.004492 | MSE: 0.004492 | L2 Error: 0.036833
+Epoch  1600 | Loss: 0.003364 | MSE: 0.003364 | L2 Error: 0.031690
+Epoch  2000 | Loss: 0.002419 | MSE: 0.002419 | L2 Error: 0.026678
+Epoch  2400 | Loss: 0.001696 | MSE: 0.001696 | L2 Error: 0.022193
+Epoch  2800 | Loss: 0.001238 | MSE: 0.001238 | L2 Error: 0.018943
+Epoch  3200 | Loss: 0.001001 | MSE: 0.001001 | L2 Error: 0.017085
+Epoch  3600 | Loss: 0.000867 | MSE: 0.000867 | L2 Error: 0.015984
+Epoch  4000 | Loss: 0.000727 | MSE: 0.000727 | L2 Error: 0.014553
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.000010 | L2 Error: 0.001766
+
+✓ Data-Driven L2 Error (grid): 0.001883
+✓ Data-Driven L2 Error (test set): 0.001766
+✓ Saved: plots/task1_2/DataDriven_K1_prediction.png
+✓ Saved: plots/task1_2/DataDriven_K1_loss.png
+
+----------------------------------------------------------------------
+COMPARISON (K=1)
+----------------------------------------------------------------------
+PINN L2 Error:        0.000396
+Data-Driven L2 Error: 0.001883
+→ PINN performed better
+
+======================================================================
+COMPLEXITY LEVEL: K = 4
+======================================================================
+
+----------------------------------------------------------------------
+PINN Approach (K=4)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Generating 10000 collocation points using Sobol sequences...
+Collocation points: 10000
+Boundary points: 252
+Training with Adam optimizer...
+Epoch   200 | Loss: 0.260946 | PDE: 0.257832 | BC: 0.000311 | L2 Error: 0.703241
+Epoch   400 | Loss: 0.034706 | PDE: 0.033272 | BC: 0.000143 | L2 Error: 0.339808
+Epoch   600 | Loss: 0.012013 | PDE: 0.011385 | BC: 0.000063 | L2 Error: 0.224615
+Epoch   800 | Loss: 0.005633 | PDE: 0.005052 | BC: 0.000058 | L2 Error: 0.213651
+Epoch  1000 | Loss: 0.003706 | PDE: 0.003249 | BC: 0.000046 | L2 Error: 0.188482
+Epoch  1200 | Loss: 0.002686 | PDE: 0.002365 | BC: 0.000032 | L2 Error: 0.165176
+Epoch  1400 | Loss: 0.004840 | PDE: 0.004552 | BC: 0.000029 | L2 Error: 0.144260
+Epoch  1600 | Loss: 0.001975 | PDE: 0.001774 | BC: 0.000020 | L2 Error: 0.128040
+Epoch  1800 | Loss: 0.000800 | PDE: 0.000710 | BC: 0.000009 | L2 Error: 0.075495
+Epoch  2000 | Loss: 0.000715 | PDE: 0.000645 | BC: 0.000007 | L2 Error: 0.099922
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.000046 | L2 Error: 0.015330
+
+✓ PINN L2 Error (grid): 0.016653
+✓ PINN L2 Error (test set): 0.015330
+✓ Saved: plots/task1_2/PINN_K4_prediction.png
+✓ Saved: plots/task1_2/PINN_K4_loss.png
+
+----------------------------------------------------------------------
+Data-Driven Approach (K=4)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Training points: 4096
+Data normalization: mean=0.010490, std=0.013371
+Training with Adam optimizer...
+Epoch   400 | Loss: 0.228966 | MSE: 0.228966 | L2 Error: 0.366955
+Epoch   800 | Loss: 0.133595 | MSE: 0.133595 | L2 Error: 0.265981
+Epoch  1200 | Loss: 0.168637 | MSE: 0.168637 | L2 Error: 0.198400
+Epoch  1600 | Loss: 0.024225 | MSE: 0.024225 | L2 Error: 0.117544
+Epoch  2000 | Loss: 0.241809 | MSE: 0.241809 | L2 Error: 0.425277
+Epoch  2400 | Loss: 0.011670 | MSE: 0.011670 | L2 Error: 0.080400
+Epoch  2800 | Loss: 0.009244 | MSE: 0.009244 | L2 Error: 0.070836
+Epoch  3200 | Loss: 0.007384 | MSE: 0.007384 | L2 Error: 0.062597
+Epoch  3600 | Loss: 0.005969 | MSE: 0.005969 | L2 Error: 0.055533
+Epoch  4000 | Loss: 0.033012 | MSE: 0.033012 | L2 Error: 0.054790
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.000297 | L2 Error: 0.012133
+
+✓ Data-Driven L2 Error (grid): 0.013549
+✓ Data-Driven L2 Error (test set): 0.012133
+✓ Saved: plots/task1_2/DataDriven_K4_prediction.png
+✓ Saved: plots/task1_2/DataDriven_K4_loss.png
+
+----------------------------------------------------------------------
+COMPARISON (K=4)
+----------------------------------------------------------------------
+PINN L2 Error:        0.016653
+Data-Driven L2 Error: 0.013549
+→ Data-Driven performed better
+
+======================================================================
+COMPLEXITY LEVEL: K = 16
+======================================================================
+
+----------------------------------------------------------------------
+PINN Approach (K=16)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Generating 10000 collocation points using Sobol sequences...
+Collocation points: 10000
+Boundary points: 252
+Training with Adam optimizer...
+Epoch   200 | Loss: 1.549712 | PDE: 1.549417 | BC: 0.000029 | L2 Error: 2.993258
+Epoch   400 | Loss: 1.398088 | PDE: 1.397248 | BC: 0.000084 | L2 Error: 5.330711
+Epoch   600 | Loss: 0.727787 | PDE: 0.726941 | BC: 0.000085 | L2 Error: 5.291678
+Epoch   800 | Loss: 0.285316 | PDE: 0.284908 | BC: 0.000041 | L2 Error: 4.526761
+Epoch  1000 | Loss: 0.093841 | PDE: 0.093641 | BC: 0.000020 | L2 Error: 2.080314
+Epoch  1200 | Loss: 0.068072 | PDE: 0.067718 | BC: 0.000035 | L2 Error: 2.777891
+Epoch  1400 | Loss: 0.038455 | PDE: 0.038229 | BC: 0.000023 | L2 Error: 1.863001
+Epoch  1600 | Loss: 0.018630 | PDE: 0.018470 | BC: 0.000016 | L2 Error: 1.617790
+Epoch  1800 | Loss: 0.014607 | PDE: 0.014455 | BC: 0.000015 | L2 Error: 1.108390
+Epoch  2000 | Loss: 0.017741 | PDE: 0.017522 | BC: 0.000022 | L2 Error: 1.629170
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.001396 | L2 Error: 0.548438
+
+✓ PINN L2 Error (grid): 0.618017
+✓ PINN L2 Error (test set): 0.548438
+✓ Saved: plots/task1_2/PINN_K16_prediction.png
+✓ Saved: plots/task1_2/PINN_K16_loss.png
+
+----------------------------------------------------------------------
+Data-Driven Approach (K=16)
+----------------------------------------------------------------------
+Preparing test set for online monitoring...
+Training points: 4096
+Data normalization: mean=0.000651, std=0.001223
+Training with Adam optimizer...
+Epoch   400 | Loss: 0.624233 | MSE: 0.624233 | L2 Error: 0.691642
+Epoch   800 | Loss: 0.496362 | MSE: 0.496362 | L2 Error: 0.615410
+Epoch  1200 | Loss: 0.354802 | MSE: 0.354802 | L2 Error: 0.521574
+Epoch  1600 | Loss: 0.275261 | MSE: 0.275261 | L2 Error: 0.479678
+Epoch  2000 | Loss: 0.224161 | MSE: 0.224161 | L2 Error: 0.413038
+Epoch  2400 | Loss: 0.197269 | MSE: 0.197269 | L2 Error: 0.388783
+Epoch  2800 | Loss: 0.165506 | MSE: 0.165506 | L2 Error: 0.354025
+Epoch  3200 | Loss: 0.147256 | MSE: 0.147256 | L2 Error: 0.334661
+Epoch  3600 | Loss: 0.136462 | MSE: 0.136462 | L2 Error: 0.318680
+Epoch  4000 | Loss: 0.121368 | MSE: 0.121368 | L2 Error: 0.303564
+Fine-tuning with L-BFGS optimizer...
+L-BFGS | Final Loss: 0.035493 | L2 Error: 0.162977
+
+✓ Data-Driven L2 Error (grid): 0.166275
+✓ Data-Driven L2 Error (test set): 0.162977
+✓ Saved: plots/task1_2/DataDriven_K16_prediction.png
+✓ Saved: plots/task1_2/DataDriven_K16_loss.png
+
+----------------------------------------------------------------------
+COMPARISON (K=16)
+----------------------------------------------------------------------
+PINN L2 Error:        0.618017
+Data-Driven L2 Error: 0.166275
+→ Data-Driven performed better
+
+======================================================================
+✓ ALL TASKS COMPLETED SUCCESSFULLY
+======================================================================
+Results saved in:
+  - plots/task1_1/  (sample visualizations for K=1,4,8,16)
+  - plots/task1_2/  (training results for K=1,4,16)
+======================================================================
