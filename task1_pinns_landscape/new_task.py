@@ -161,7 +161,6 @@ class BaseSolver(ABC):
         self.history = []
         
         # Pre-compute test set for online error monitoring (using Sobol sequences)
-        print("Preparing test set for online monitoring...")
         sobol_engine_test = torch.quasirandom.SobolEngine(dimension=2, scramble=True, seed=123)
         xy_test_np = sobol_engine_test.draw(8000).numpy()
         
@@ -310,7 +309,6 @@ class PoissonPINN(BaseSolver):
     def prepare_training_data(self):
         """Prepare collocation and boundary points"""
         # Use Sobol sequence for collocation points (better space coverage than random)
-        print(f"Generating {self.n_collocation} collocation points using Sobol sequences...")
         sobol_engine = torch.quasirandom.SobolEngine(dimension=2, scramble=True, seed=42)
         self.xy_collocation = sobol_engine.draw(self.n_collocation).float()
         
