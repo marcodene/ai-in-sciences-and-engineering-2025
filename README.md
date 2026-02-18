@@ -10,9 +10,6 @@ A course project for **AI in the Sciences and Engineering (HS25)** at ETH Zurich
 2. [Prerequisites & Installation](#prerequisites--installation)
 3. [Data](#data)
 4. [Running the Project](#running-the-project)
-   - [Task 1 — Loss Landscapes](#task-1--loss-landscapes-pinns-vs-data-driven)
-   - [Task 2 — FNO Dynamical System](#task-2--fno-dynamical-system-identification)
-   - [Task 3 — GAOT Extension](#task-3--gaot-extension-for-irregular-geometries)
 5. [Results](#results)
 6. [Report](#report)
 7. [License](#license)
@@ -24,47 +21,9 @@ A course project for **AI in the Sciences and Engineering (HS25)** at ETH Zurich
 ```
 aise2026_project/
 │
-├── task1/                          # Task 1: Loss landscapes (PINNs vs. Data-Driven)
-│   ├── config_task1.py             # Hyperparameters and paths for Task 1
-│   ├── description.md              # Official task description
-│   ├── models.py                   # MLP, PoissonPINN, and DataDrivenSolver classes
-│   ├── physics.py                  # Analytical Poisson source term and solution
-│   ├── utils_task1.py              # Plotting and utility functions
-│   ├── task1_1_data.py             # Task 1.1: data generation and visualisation
-│   ├── task1_2_train.py            # Task 1.2: train PINN and Data-Driven models
-│   └── task1_3_landscape.py        # Task 1.3: loss landscape visualisation (bonus)
-│
-├── task2/                          # Task 2: FNO for dynamical system identification
-│   ├── config.py                   # Hyperparameters, data paths, and model paths
-│   ├── description.md              # Official task description
-│   ├── datasets.py                 # PyTorch Dataset classes (One2One, All2All)
-│   ├── utils.py                    # Training loop, metrics, and checkpoint helpers
-│   ├── models/
-│   │   ├── fno.py                  # FNO1d for one-to-one mapping
-│   │   └── fno_time.py             # Time-conditioned FNO1d with FiLM layers
-│   ├── task1_one2one.py            # Task 2.1: one-to-one FNO training
-│   ├── task2_resolution.py         # Task 2.2: resolution-generalisation test
-│   ├── task3_all2all.py            # Task 2.3: all-to-all time-dependent FNO
-│   └── task4_finetune.py           # Task 2.4: fine-tuning on unknown distribution
-│
-├── task3/                          # Task 3: GAOT extension for irregular geometries
-│   ├── description.md              # Official task description
-│   ├── GAOT-base/                  # Baseline GAOT implementation (Strategy I)
-│   │   ├── main.py                 # Entry point
-│   │   ├── README.md               # GAOT-base usage instructions
-│   │   ├── requirements.txt        # Task-3-specific dependencies
-│   │   ├── config/examples/        # Example JSON/TOML config files
-│   │   ├── datasets/               # Datasets folder (NetCDF .nc files go here)
-│   │   └── src/                    # Core source: model, trainer, datasets, utils
-│   └── GAOT-random-sampling-dynamic-radius/   # Extended GAOT (Strategy II)
-│       ├── main.py                 # Entry point
-│       ├── visualize_tokenization.py  # Visualise random-sampling token strategies
-│       ├── README.md               # Extended GAOT usage instructions
-│       ├── requirements.txt        # Task-3-specific dependencies (same as base)
-│       ├── config/examples/        # Example config files for the extended model
-│       ├── datasets/               # Datasets folder
-│       ├── plots/                  # Tokenization strategy visualisations
-│       └── src/                    # Extended source with dynamic-radius graph builder
+├── task1/   # Loss landscapes: PINNs vs. Data-Driven — see task1/README.md
+├── task2/   # FNO dynamical system identification — see task2/README.md
+├── task3/   # GAOT extension for irregular geometries — see task3/README.md
 │
 ├── models/                         # Trained PyTorch checkpoints (git-ignored, *.pt)
 ├── plots/                          # Generated figures organised by sub-task
@@ -159,86 +118,11 @@ Task 3 uses NetCDF (`.nc`) datasets from the [GAOT HuggingFace page](https://hug
 
 ## Running the Project
 
-All scripts are run from the **project root** unless otherwise noted. Make sure the virtual environment is activated.
+Each task has its own README with full run instructions and configuration details. All scripts for Task 1 and Task 2 are run from the project root with the virtual environment activated.
 
-### Task 1 — Loss Landscapes: PINNs vs. Data-Driven
-
-The three scripts must be run in order:
-
-**Step 1 — Generate and visualise training data**
-```bash
-python task1/task1_1_data.py
-```
-Produces sample plots under `plots/task1_1/` for K = 1, 4, 8, 16.
-
-**Step 2 — Train PINN and Data-Driven solvers**
-```bash
-python task1/task1_2_train.py
-```
-Trains MLP solvers for both approaches at three complexity levels (K = 1, 4, 16). Checkpoints are saved to `models/`. Set `USE_PRETRAINED = False` in `task1/config_task1.py` to retrain from scratch; set it to `True` to load existing checkpoints.
-
-**Step 3 — Visualise loss landscapes (bonus)**
-```bash
-python task1/task1_3_landscape.py
-```
-Computes 2D loss landscapes around the converged parameters using the filter-normalised direction method (Li et al., 2018). Results are cached in `plots/task1_3/cache/` (HDF5) and plots are written to `plots/task1_3/`.
-
-> **Configuration:** all hyperparameters (grid resolution, K values, landscape range, caching mode, etc.) are centralised in `task1/config_task1.py`.
-
----
-
-### Task 2 — FNO Dynamical System Identification
-
-The four scripts correspond to the four sub-tasks and should be run in order:
-
-**Step 1 — One-to-one FNO (u₀ → u(t=1))**
-```bash
-python task2/task1_one2one.py
-```
-
-**Step 2 — Resolution generalisation test**
-```bash
-python task2/task2_resolution.py
-```
-Evaluates the Task-1 checkpoint at spatial resolutions 32, 64, 96, 128.
-
-**Step 3 — All-to-all time-conditioned FNO**
-```bash
-python task2/task3_all2all.py
-```
-Uses all five time snapshots with FiLM-conditioned normalisation.
-
-**Step 4 — Fine-tuning on unknown distribution**
-```bash
-python task2/task4_finetune.py
-```
-Fine-tunes the all-to-all model on 32 trajectories from an unknown initial-condition distribution, then evaluates zero-shot and fine-tuned performance.
-
-> **Configuration:** set `USE_PRETRAINED = True` in `task2/config.py` to skip training and load saved checkpoints; set it to `False` to train from scratch. All data and model paths are also configured in that file.
-
----
-
-### Task 3 — GAOT Extension for Irregular Geometries
-
-Task 3 is self-contained within its subdirectories. Follow the respective READMEs:
-
-**Baseline (Strategy I — Stencil Grid)**
-```bash
-cd task3/GAOT-base
-python main.py --config config/examples/time_indep/elasticity.json
-```
-See [task3/GAOT-base/README.md](task3/GAOT-base/README.md) for full instructions.
-
-**Extended model (Strategy II — Random Sampling + Dynamic Radius)**
-```bash
-cd task3/GAOT-random-sampling-dynamic-radius
-python main.py --config config/examples/time_indep/elasticity.json
-```
-To visualise the four tokenization strategies:
-```bash
-python task3/GAOT-random-sampling-dynamic-radius/visualize_tokenization.py
-```
-See [task3/GAOT-random-sampling-dynamic-radius/README.md](task3/GAOT-random-sampling-dynamic-radius/README.md) for full instructions.
+- Task 1: see [task1/README.md](task1/README.md)
+- Task 2: see [task2/README.md](task2/README.md)
+- Task 3: see [task3/README.md](task3/README.md)
 
 ---
 
@@ -246,22 +130,7 @@ See [task3/GAOT-random-sampling-dynamic-radius/README.md](task3/GAOT-random-samp
 
 All generated figures are stored under `plots/` and discussed in detail in `report/report.pdf`.
 
-| Sub-task | What is investigated | Outputs |
-|---|---|---|
-| **Task 1.1** | Sample visualisations of Poisson source `f` and solution `u` for K = 1, 4, 8, 16 | `plots/task1_1/` |
-| **Task 1.2** | Training loss curves and L² relative errors for PINN vs. Data-Driven at K = 1, 4, 16 | `plots/task1_2/` |
-| **Task 1.3** | 3D surface and 2D contour loss landscape plots; qualitative comparison of landscape sharpness | `plots/task1_3/` |
-| **Task 2.1** | One-to-one FNO: average relative L² error on 128 test trajectories at t = 1.0 | reported in `report.pdf` |
-| **Task 2.2** | Resolution generalisation: error across spatial resolutions 32–128 | reported in `report.pdf` |
-| **Task 2.3** | All-to-all FNO: error at each time step t = 0.25, 0.50, 0.75, 1.0 | reported in `report.pdf` |
-| **Task 2.4** | Zero-shot vs. fine-tuned vs. from-scratch on unknown distribution | reported in `report.pdf` |
-| **Task 3** | GAOT baseline vs. extended random-sampling + dynamic-radius model on Elasticity dataset | reported in `report.pdf` |
-
-**Key findings (summary):**
-- PINN loss landscapes become significantly rougher and more non-convex as K increases, consistent with Krishnapriyan et al. (2021).
-- FNOs generalise well across resolutions (resolution-invariance) due to the spectral parameterisation.
-- Fine-tuning with only 32 trajectories substantially closes the gap to in-distribution performance, demonstrating effective transfer learning.
-- The random-sampling + dynamic-radius GAOT variant successfully covers irregular domains without leaving coverage holes.
+Task 1: On the 2D Poisson equation, the Data-Driven solver outperforms PINN at high frequency (K=16: 0.49% vs. 23.3% relative L² error), while PINN dominates at K=1 (0.0063% vs. 0.13%), consistent with spectral bias theory. Task 2: The all-to-all FNO achieves 0.72% relative L² error across all time steps — a 2.4× improvement over the one-to-one baseline (1.71%) — and fine-tuning on just 32 unknown-distribution trajectories yields 3.07% error versus 9.93% training from scratch. Task 3: The baseline GAOT (4,096 grid tokens) achieves 5.29% relative L¹ error on the Elasticity dataset; the random-sampling variant with dynamic radius (256 tokens) achieves 24.46%, with the performance gap attributed to Transformer positional encodings being designed for regular grids rather than to a coverage deficit.
 
 ---
 
