@@ -1,4 +1,4 @@
-# AISE 2026 Project: Neural PDE Solvers
+# AI in the Sciences and Engineering 2025 Project
 
 A course project for **AI in the Sciences and Engineering (HS25)** at ETH Zurich, by **Marco De Negri**. The project explores three complementary approaches to learning solutions of partial differential equations with neural networks: (1) comparing loss landscapes of Physics-Informed Neural Networks (PINNs) against supervised data-driven solvers on the 2D Poisson equation, (2) training Fourier Neural Operators (FNOs) to identify an unknown dynamical system from trajectory data, and (3) extending the Geometry-Aware Operator Transformer (GAOT) to support irregular-geometry tokenization via random sampling and a dynamic radius strategy.
 
