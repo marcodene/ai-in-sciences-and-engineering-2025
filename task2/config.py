@@ -1,8 +1,3 @@
-"""
-Configuration file for all tasks
-Contains paths, hyperparameters, and toggle settings
-"""
-
 import torch
 
 # ============================================
@@ -65,9 +60,9 @@ TASK3_CONFIG = {
     'batch_size': 32,
     'modes': 16,
     'width': 64,
-    'learning_rate': 1e-3,
-    'epochs': 100,
-    'step_size': 100,
+    'learning_rate': 5e-4,
+    'epochs': 250,
+    'step_size': 50,
     'weight_decay': 1e-5
 }
 
@@ -78,10 +73,11 @@ TASK4_CONFIG = {
     'batch_size': 8,
     'modes': 16,
     'width': 64,
-    'learning_rate_finetune': 5e-4,
-    'epochs_finetune': 50,
+    'learning_rate_finetune': 5e-5,
+    'epochs_finetune': 200,
     'learning_rate_scratch': 1e-3,
     'epochs_scratch': 200,
-    'step_size': 50,
-    'weight_decay': 1e-5
+    'step_size': 30,
+    'weight_decay': 1e-5,               # For finetuning
+    'weight_decay_scratch': 2e-5 
 }

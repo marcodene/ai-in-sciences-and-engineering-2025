@@ -1,8 +1,3 @@
-"""
-Task 2: Testing on Different Resolutions
-Test the Task 1 model on datasets with varying spatial resolutions
-"""
-
 import torch
 from torch.utils.data import DataLoader
 from models.fno import FNO1d
@@ -12,9 +7,7 @@ from datasets import One2OneDataset
 from utils import compute_relative_l2_error, load_model
 
 
-print("="*60)
-print("TASK 2: Testing on Different Resolutions")
-print("="*60)
+print("\nTASK 2: Testing on Different Resolutions")
 
 # ============================================
 # LOAD PRETRAINED MODEL FROM TASK 1
@@ -36,7 +29,6 @@ resolutions = [32, 64, 96, 128]
 errors = {}
 
 print("\nTesting on different resolutions...")
-print("-" * 60)
 
 for res in resolutions:
     # Load test dataset at this resolution
@@ -58,8 +50,3 @@ for res in resolutions:
     errors[res] = test_error
     
     print(f'Resolution {res:3d}: Error = {test_error:.6f}')
-
-print("-" * 60)
-print("\nObservation: The model generalizes across different resolutions")
-print("due to the spectral representation in Fourier space.")
-print("="*60)

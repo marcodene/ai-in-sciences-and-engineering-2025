@@ -1,11 +1,6 @@
-"""
-Task 3: All-to-All FNO Training
-Train a time-dependent FNO using all time snapshots.
-"""
-
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim import AdamW
 from torch.utils.data import DataLoader
 import numpy as np
 import os
@@ -17,21 +12,22 @@ from datasets import All2AllDataset
 from utils import compute_relative_l2_error, load_model
 
 
-print("="*60)
-print("TASK 3: All-to-All Training (time-dependent FNO)")
-print("="*60)
+print("\nTASK 3: All-to-All Training (time-dependent FNO)")
 
 # ============================================
 # LOAD DATASETS
 # ============================================
 print("\nLoading datasets...")
 train_dataset = All2AllDataset(DATA_PATHS['train'])
+val_dataset = All2AllDataset(DATA_PATHS['val'])
 test_dataset = All2AllDataset(DATA_PATHS['test_128'])
 
 train_loader = DataLoader(train_dataset, batch_size=TASK3_CONFIG['batch_size'], shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=TASK3_CONFIG['batch_size'], shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=TASK3_CONFIG['batch_size'], shuffle=False)
 
 print(f"Train batches: {len(train_loader)}")
+print(f"Val batches: {len(val_loader)}")
 print(f"Test batches: {len(test_loader)}")
 
 # ============================================
@@ -60,9 +56,9 @@ else:
     
     # Training setup
     criterion = nn.MSELoss()
-    optimizer = Adam(
-        model.parameters(), 
-        lr=TASK3_CONFIG['learning_rate'], 
+    optimizer = AdamW(
+        model.parameters(),
+        lr=TASK3_CONFIG['learning_rate'],
         weight_decay=TASK3_CONFIG['weight_decay']
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
@@ -76,25 +72,39 @@ else:
         # Training
         model.train()
         train_loss = 0
-        
+
         for inputs, targets in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
-            
+
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            
+
             train_loss += loss.item()
-        
+
         train_loss /= len(train_loader)
-        
+
+        # Validation
+        model.eval()
+        val_error = 0
+
+        with torch.no_grad():
+            for inputs, targets in val_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model(inputs)
+                val_error += compute_relative_l2_error(outputs, targets)
+
+        val_error /= len(val_dataset)
+
         # Scheduler
         scheduler.step()
-        
+
         if (epoch + 1) % 5 == 0:
-            print(f'Epoch {epoch+1}/{TASK3_CONFIG["epochs"]}: Train Loss = {train_loss:.6f}')
+            print(f'Epoch {epoch+1}/{TASK3_CONFIG["epochs"]}: '
+                  f'Train Loss = {train_loss:.6f}, '
+                  f'Val Rel L2 Error = {val_error:.6f}')
     
     print("\nTraining complete!")
     
@@ -106,9 +116,7 @@ else:
 # ============================================
 # TASK 3.1: TEST AT t=1.0 (compare with Task 1)
 # ============================================
-print("\n" + "="*60)
-print("TASK 3.1: Testing at t=1.0 (compare with one2one)")
-print("="*60)
+print("\nTASK 3.1: Testing at t=1.0 (compare with one2one)")
 
 # Prepare input: u(t=0) with Δt=1.0 → target: u(t=1.0)
 test_data = np.load(DATA_PATHS['test_128'])  # (128, 5, 128)
@@ -137,14 +145,11 @@ with torch.no_grad():
     test_error_t1 = compute_relative_l2_error(Y_pred_t1, Y_test_t1) / n_test
 
 print(f"Average Relative L2 Error at t=1.0: {test_error_t1:.6f}")
-print("Compare this to Task 1 (one2one) result!")
 
 # ============================================
 # TASK 3.2: TEST AT MULTIPLE TIMESTEPS
 # ============================================
-print("\n" + "="*60)
-print("TASK 3.2: Testing at Multiple Timesteps")
-print("="*60)
+print("\nTASK 3.2: Testing at Multiple Timesteps")
 
 time_values = np.array([0.25, 0.50, 0.75, 1.0])
 time_indices = [1, 2, 3, 4]  # Indices in data array
@@ -168,7 +173,3 @@ for t_val, t_idx in zip(time_values, time_indices):
     
     errors_by_time[t_val] = error_t
     print(f"t={t_val:.2f}: Error = {error_t:.6f}")
-
-print("\nObservation: Error typically increases with time as predictions")
-print("become more challenging (longer time evolution).")
-print("="*60)

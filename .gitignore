@@ -15,6 +15,12 @@ venv/
 .venv/
 .ipynb_checkpoints/
 
+# Python packaging / testing
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
 # IDEs
 .vscode/
 .idea/
@@ -34,3 +40,25 @@ data/
 outputs/
 wandb/
 runs/
+
+# LaTeX build artifacts (report.tex, references.bib, and report.pdf are kept)
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/*.blg
+report/*.bbl
+report/*.run.xml
+report/*.bcf
+
+# Loss landscape HDF5 cache (large files, recomputed on demand)
+plots/task1_3/cache/
+
+# GAOT training artifacts (checkpoints, databases, loss logs, results)
+task3/**/.ckpt/
+task3/**/.database/
+task3/**/.loss/
+task3/**/.results/

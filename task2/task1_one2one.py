@@ -1,8 +1,3 @@
-"""
-Task 1: One-to-One Training
-Train an FNO to learn the mapping from t=0 to t=1
-"""
-
 import torch
 from torch.utils.data import DataLoader
 from models.fno import FNO1d
@@ -15,9 +10,7 @@ from datasets import One2OneDataset
 from utils import compute_relative_l2_error, train_model, load_model
 
 
-print("="*60)
-print("TASK 1: One-to-One Training (t=0 → t=1)")
-print("="*60)
+print("\nTASK 1: One-to-One Training (t=0 to t=1)")
 
 # ============================================
 # LOAD DATASETS
@@ -73,9 +66,9 @@ else:
     
     # Training loop
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(
-        model.parameters(), 
-        lr=TASK1_CONFIG['learning_rate'], 
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=TASK1_CONFIG['learning_rate'],
         weight_decay=TASK1_CONFIG['weight_decay']
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
@@ -131,9 +124,7 @@ else:
 # ============================================
 # TESTING
 # ============================================
-print("\n" + "="*60)
-print("Testing on test set (resolution 128)")
-print("="*60)
+print("\nTesting on test set (resolution 128)")
 
 model.eval()
 test_error = 0
@@ -147,4 +138,3 @@ with torch.no_grad():
 test_error /= TASK1_CONFIG['n_test']
 
 print(f'\nTASK 1 RESULT: Average Relative L2 Error = {test_error:.6f}')
-print("="*60)

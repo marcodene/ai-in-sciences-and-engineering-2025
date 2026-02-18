@@ -1,10 +1,6 @@
-"""
-Utility functions shared across all tasks
-"""
-
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim import AdamW
 import numpy as np
 import os
 
@@ -50,7 +46,7 @@ def train_model(model, train_loader, val_data_path, epochs, lr, device,
         Trained model
     """
     criterion = nn.MSELoss()
-    optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    optimizer = AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.5)
     
     print(f"\nTraining model...")
@@ -196,7 +192,7 @@ def load_model(model, model_path, device):
     """
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
-        print(f"✓ Loaded pretrained model from {model_path}")
+        print(f"Loaded pretrained model from {model_path}")
         return model
     else:
         raise FileNotFoundError(f"Model not found at {model_path}")

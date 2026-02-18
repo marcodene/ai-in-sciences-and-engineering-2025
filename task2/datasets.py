@@ -1,7 +1,3 @@
-"""
-Dataset classes for all tasks
-"""
-
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -77,7 +73,7 @@ class All2AllDataset(Dataset):
         # Total number of samples
         self.length = self.n_trajectories * self.n_pairs
         
-        print(f"All2AllDataset: {self.length} samples ({self.n_trajectories} traj × {self.n_pairs} pairs)")
+        print(f"All2AllDataset: {self.length} samples ({self.n_trajectories} traj x {self.n_pairs} pairs)")
     
     def __len__(self):
         return self.length

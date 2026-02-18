@@ -1,15 +1,6 @@
-"""
-Task 4: Finetuning on Unknown Distribution
-
-This script implements all three parts of Task 4:
-1. Zero-shot testing (5 points)
-2. Finetuning (10 points)
-3. Training from scratch (10 bonus points)
-"""
-
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim import AdamW
 from torch.utils.data import DataLoader
 import os
 
@@ -22,27 +13,29 @@ from utils import (
 )
 
 
-print("="*70)
-print("TASK 4: Finetuning on Unknown Distribution")
-print("="*70)
+print("\nTASK 4: Finetuning on Unknown Distribution")
 
 # ============================================
 # LOAD FINETUNING DATASETS
 # ============================================
 print("\nLoading finetuning datasets...")
 finetune_train_dataset = All2AllDataset(DATA_PATHS['finetune_train_unknown'])
+finetune_val_dataset = All2AllDataset(DATA_PATHS['finetune_val_unknown'])
 finetune_train_loader = DataLoader(
-    finetune_train_dataset, 
-    batch_size=TASK4_CONFIG['batch_size'], 
+    finetune_train_dataset,
+    batch_size=TASK4_CONFIG['batch_size'],
     shuffle=True
+)
+finetune_val_loader = DataLoader(
+    finetune_val_dataset,
+    batch_size=TASK4_CONFIG['batch_size'],
+    shuffle=False
 )
 
 # ============================================
 # TASK 4.1: ZERO-SHOT TESTING
 # ============================================
-print("\n" + "="*70)
-print("TASK 4.1: Zero-Shot Testing on Unknown Distribution")
-print("="*70)
+print("\nTASK 4.1: Zero-Shot Testing on Unknown Distribution")
 
 # Load pretrained model from Task 3
 model_pretrained = FNO1d(
@@ -63,14 +56,11 @@ else:
 errors_zeroshot = test_at_multiple_times(model_pretrained, DATA_PATHS['test_unknown'], device)
 error_zeroshot = errors_zeroshot[1.0]
 print(f"\nZero-Shot Error on Unknown Distribution (t=1.0): {error_zeroshot:.6f}")
-print("This is the model's performance without any finetuning.")
 
 # ============================================
 # TASK 4.2: FINETUNING
 # ============================================
-print("\n" + "="*70)
-print("TASK 4.2: Finetuning on Unknown Distribution")
-print("="*70)
+print("\nTASK 4.2: Finetuning on Unknown Distribution")
 
 # Create a copy of the pretrained model for finetuning
 model_finetuned = FNO1d(
@@ -90,9 +80,9 @@ else:
     
     # Finetune the model
     criterion = nn.MSELoss()
-    optimizer = Adam(
-        model_finetuned.parameters(), 
-        lr=TASK4_CONFIG['learning_rate_finetune'], 
+    optimizer = AdamW(
+        model_finetuned.parameters(),
+        lr=TASK4_CONFIG['learning_rate_finetune'],
         weight_decay=TASK4_CONFIG['weight_decay']
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
@@ -106,23 +96,37 @@ else:
         # Training
         model_finetuned.train()
         train_loss = 0
-        
+
         for inputs, targets in finetune_train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
-            
+
             optimizer.zero_grad()
             outputs = model_finetuned(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            
+
             train_loss += loss.item()
-        
+
         train_loss /= len(finetune_train_loader)
-        
+
+        # Validation
+        model_finetuned.eval()
+        val_error = 0
+
+        with torch.no_grad():
+            for inputs, targets in finetune_val_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model_finetuned(inputs)
+                val_error += compute_relative_l2_error(outputs, targets)
+
+        val_error /= len(finetune_val_dataset)
+
         if (epoch + 1) % 10 == 0:
-            print(f'Epoch {epoch+1}/{TASK4_CONFIG["epochs_finetune"]}: Train Loss = {train_loss:.6f}')
-        
+            print(f'Epoch {epoch+1}/{TASK4_CONFIG["epochs_finetune"]}: '
+                  f'Train Loss = {train_loss:.6f}, '
+                  f'Val Rel L2 Error = {val_error:.6f}')
+
         scheduler.step()
     
     # Save model
@@ -140,9 +144,7 @@ print(f"Improvement: {error_zeroshot - error_finetuned:.6f} "
 # ============================================
 # TASK 4.3: TRAIN FROM SCRATCH (BONUS)
 # ============================================
-print("\n" + "="*70)
-print("TASK 4.3 (BONUS): Training from Scratch on Unknown Distribution")
-print("="*70)
+print("\nTASK 4.3 (BONUS): Training from Scratch on Unknown Distribution")
 
 # Create new model from scratch
 model_scratch = FNO1d(
@@ -161,10 +163,10 @@ else:
     
     # Train from scratch
     criterion = nn.MSELoss()
-    optimizer = Adam(
-        model_scratch.parameters(), 
-        lr=TASK4_CONFIG['learning_rate_scratch'], 
-        weight_decay=TASK4_CONFIG['weight_decay']
+    optimizer = AdamW(
+        model_scratch.parameters(),
+        lr=TASK4_CONFIG['learning_rate_scratch'],
+        weight_decay=TASK4_CONFIG['weight_decay_scratch']
     )
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, 
@@ -177,23 +179,37 @@ else:
         # Training
         model_scratch.train()
         train_loss = 0
-        
+
         for inputs, targets in finetune_train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
-            
+
             optimizer.zero_grad()
             outputs = model_scratch(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            
+
             train_loss += loss.item()
-        
+
         train_loss /= len(finetune_train_loader)
-        
+
+        # Validation
+        model_scratch.eval()
+        val_error = 0
+
+        with torch.no_grad():
+            for inputs, targets in finetune_val_loader:
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = model_scratch(inputs)
+                val_error += compute_relative_l2_error(outputs, targets)
+
+        val_error /= len(finetune_val_dataset)
+
         if (epoch + 1) % 10 == 0:
-            print(f'Epoch {epoch+1}/{TASK4_CONFIG["epochs_scratch"]}: Train Loss = {train_loss:.6f}')
-        
+            print(f'Epoch {epoch+1}/{TASK4_CONFIG["epochs_scratch"]}: '
+                  f'Train Loss = {train_loss:.6f}, '
+                  f'Val Rel L2 Error = {val_error:.6f}')
+
         scheduler.step()
     
     # Save model
@@ -209,19 +225,13 @@ print(f"\nFrom-Scratch Model Error on Unknown Distribution (t=1.0): {error_scrat
 # ============================================
 # FINAL COMPARISON
 # ============================================
-print("\n" + "="*70)
-print("FINAL RESULTS SUMMARY")
-print("="*70)
+print("\nFINAL RESULTS SUMMARY")
 print(f"Zero-Shot (no finetuning):       {error_zeroshot:.6f}")
 print(f"Finetuned (32 trajectories):     {error_finetuned:.6f}")
 print(f"From Scratch (32 trajectories):  {error_scratch:.6f}")
-print("\n" + "="*70)
 
 if error_finetuned < error_scratch:
     improvement = (error_scratch - error_finetuned) / error_scratch * 100
-    print(f"✓ Transfer Learning is SUCCESSFUL!")
-    print(f"  Finetuning is {improvement:.1f}% better than training from scratch.")
+    print(f"\nTransfer Learning: Finetuning is {improvement:.1f}% better than training from scratch.")
 else:
-    print(f"✗ Transfer Learning is NOT successful for this case.")
-    print(f"  Training from scratch performs better.")
-print("="*70)
+    print(f"\nTransfer Learning: Training from scratch performs better.")
