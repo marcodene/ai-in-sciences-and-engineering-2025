@@ -41,7 +41,7 @@ aise2026_project/
 ├── venv/                           # Python virtual environment — git-ignored
 ├── requirements.txt                # Root dependencies for Task 1 and Task 2
 ├── .gitignore
-└── aise2026-project-description.pdf  # Official course project PDF
+└── project-description.pdf  # Official course project PDF
 ```
 
 ---
